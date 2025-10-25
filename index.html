@@ -1,0 +1,192 @@
+<!-- Rishit's HTML Code for Portfolio Website --> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rishit Chatterjee</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- Background video stays fixed to viewport -->
+    <video class="back-vid" autoplay loop muted playsinline src="videos/lotr_o.mp4"></video>
+
+    <!-- SIMPLE TOP NAV ONLY -->
+    <header data-aos="fade-down" data-aos-duration="2000">
+      <div class="left">
+        <img src="images/rc_logo.png" alt="logo" />
+        <h2><span style="color:#d4af37;">Rishit</span>Chatterjee</h2>
+      </div>
+
+      <ul class="top-nav">
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="https://www.linkedin.com/in/r-chatterjee-034342241/" target="_blank" rel="noopener">LinkedIn CV</a></li>
+        <li><a href="#projects">Projects</a></li>
+      </ul>
+
+      <div class="box-icons">
+        <p><a href="https://github.com/AgentQuantum" target="_blank" rel="noopener" aria-label="GitHub"><i class='bx bxl-github'></i></a></p>
+        <p><a href="https://www.linkedin.com/in/r-chatterjee-034342241/" target="_blank" rel="noopener" aria-label="LinkedIn (CV)"><i class='bx bxl-linkedin-square'></i></a></p>
+      </div>
+    </header>
+
+    <div class="blackhole-box" data-aos="fade-down" data-aos-duration="2000">
+      <video autoplay loop muted playsinline src="videos/blackhole.mp4"></video>
+    </div>
+
+    <section id="home" class="hero">
+      <div class="hero-info autoBlur" data-aos="fade-right" data-aos-duration="1000">
+        <div class="hero-info-title">
+          <i class='bx bxl-sketch'></i>
+          CS/Math Undergraduate and ML Research Enthusiast!
+        </div>
+
+        <h1 data-aos="fade-right" data-aos-duration="3000">
+          Providing <span class="gradient">the best</span> Project <span class="gradient">Experience</span>
+        </h1>
+
+        <p>I'm a front-end developer and CS+Math student at Colby College. Check out my projects and skills.</p>
+
+        <a class="primary-btn" href="#contact"><button><i class='bx bx-send'></i> Contact Me</button></a>
+      </div>
+
+      <div class="scroll-down"></div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="info-section">
+      <h1 class="section-title autoDisplay">Hello, there 👋</h1>
+
+      <p class="about-blurb" style="max-width: 900px; margin: 10px auto 30px; text-align:center;">
+        I’m Rishit, a CS/Math undergrad at Colby focused on ML, computer vision, and elegant, fast UIs.
+        I love building useful tools, from research prototypes to polished web apps.
+      </p>
+
+      <div class="info-cards">
+        <div class="card">
+          <h1>Hi there, I'm Rishit</h1>
+          <p>I build dynamic, responsive machine learning toolkits, with a focus on practical applications and optimal performance.</p>
+          <img src="images/coder.png" alt="">
+        </div>
+
+        <div class="card">
+          <h1>Tech Stack</h1>
+          <p>Deep Learning, Computer Vision, Cybersecurity — Comfortable across modern tooling.</p>
+          <img src="images/grid2.png" alt="">
+        </div>
+
+        <div class="card">
+          <h1>I’m flexible with time zones & locations</h1>
+          <p>I'm currently based in Waterville, ME (Colby College) — open to remote work worldwide.</p>
+          <video src="videos/glob.mp4" autoplay loop muted playsinline></video>
+          <a class="primary-btn" href="https://www.linkedin.com/in/r-chatterjee-034342241/" target="_blank" rel="noopener"><button><i class='bx bx-send'></i> CV / LinkedIn</button></a>
+        </div>
+
+        <div class="card">
+          <h1>My Passion for Coding</h1>
+          <p>I love solving problems and building things through code—exploring new tech, shipping polished products, and learning fast.</p>
+          <img src="images/grid4.png" alt="">
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects (single project) -->
+    <section id="projects" class="my-project">
+      <h1 class="section-title autoDisplay">My Projects 👨‍💻</h1>
+
+      <div class="project-card">
+        <div class="project-vidbox autoBlur">
+          <video loop playsinline id="projectVideo1" src="videos/project1.mp4"></video>
+          <div class="hover-sign"></div>
+        </div>
+
+        <div class="project-info fadein-left">
+          <h1>Pneumonia <span class="gradient">Detection</span> AI</h1>
+          <p>
+            Pneumonia Detection AI: We build an AI tool to help radiologists and patients detect pneumonia from chest X-ray images.
+            Leveraging CNNs and transfer learning (VGG16, ResNet50), we preprocess and explore data, optimize models,
+            and evaluate performance via accuracy and confusion matrices.
+          </p>
+          <a href="https://github.com/AgentQuantum/pneumonia-cnn" target="_blank" rel="noopener">
+            <button><i class='bx bx-link-external'></i> View on GitHub</button>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section id="skills" class="skills-section">
+      <h1 class="section-title autoDisplay">My Skills:</h1>
+      <div class="skills-box autoDisplay">
+        <img class="skills-image" src="images/digital brain (2).png" alt="">
+        <div class="Designer">
+          <h1 class="gradient">Designer <i class='bx bx-laptop'></i></h1>
+          <p>I have expertise in HTML, CSS, JavaScript, and design tools like Figma and Adobe XD. I blend aesthetics with performance to create seamless user experiences.</p>
+        </div>
+
+        <div class="coder">
+          <h1 class="gradient">Coder <i class='bx bx-code-block'></i></h1>
+          <p>Skilled in JS, Three.js, and modern frameworks like React and Node.js. Experience with databases (MongoDB/MySQL) and deploy pipelines.</p>
+        </div>
+
+        <div class="slider" reverse="true" style="--width:100px; --height:100px; --quantity:9;">
+          <div class="list">
+            <div class="item" style="--position:1"><img src="images/1.png" alt=""></div>
+            <div class="item" style="--position:2"><img src="images/2.png" alt=""></div>
+            <div class="item" style="--position:3"><img src="images/3.webp" alt=""></div>
+            <div class="item" style="--position:4"><img src="images/4.webp" alt=""></div>
+            <div class="item" style="--position:5"><img src="images/5.png" alt=""></div>
+            <div class="item" style="--position:6"><img src="images/6.png" alt=""></div>
+            <div class="item" style="--position:7"><img src="images/7.png" alt=""></div>
+            <div class="item" style="--position:8"><img src="images/8.png" alt=""></div>
+            <div class="item" style="--position:9"><img src="images/9.png" alt=""></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="contact-section">
+      <div class="social-box autoBlur">
+        <a href="https://www.linkedin.com/in/r-chatterjee-034342241/" target="_blank" rel="noopener" aria-label="LinkedIn (CV)">
+          <i class='bx bxl-linkedin-square'></i> CV / LinkedIn
+        </a>
+      </div>
+
+      <div class="contact-box autoBlur">
+        <p>Whether you're looking to build a new AI Model, improve your existing codebase, or ship a unique project, I'm here to help.</p>
+
+        <p>Full Name</p>
+        <input placeholder="Your full name" type="text"/>
+
+        <p>Email Address</p>
+        <input placeholder="your@email.com" type="email"/>
+
+        <p>Your Message</p>
+        <input class="input-message" type="text" placeholder="Share your thoughts..." />
+
+        <button>Send Message <i class='bx bx-mail-send'></i></button>
+      </div>
+    </section>
+
+    <section class="footer">
+      <h1>©️2025, Made by Rishit Chatterjee</h1>
+      <div class="box-icons">
+        <p><a href="https://github.com/AgentQuantum" target="_blank" rel="noopener" aria-label="GitHub"><i class='bx bxl-github'></i></a></p>
+        <p><a href="https://www.linkedin.com/in/r-chatterjee-034342241/" target="_blank" rel="noopener" aria-label="LinkedIn (CV)"><i class='bx bxl-linkedin-square'></i></a></p>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>AOS.init();</script>
+</body>
+</html>
