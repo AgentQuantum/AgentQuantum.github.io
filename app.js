@@ -113,15 +113,16 @@ videoList.forEach((video)=>{
     window.addEventListener('resize', onResize);
 
     // Start/stop when visible to save resources
-    const io = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        if (!rafId) render();
-      } else if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
-    }, { threshold: 0.1 });
-    io.observe(host);
+    // Pause/resume based on visibility (not just pause)
+const io = new IntersectionObserver(([entry]) => {
+  running = entry.isIntersecting && !gameOver;
+  if (running) { 
+    // eat the first dt after resuming so it doesn’t spike
+    clock.getDelta();
+  }
+}, { threshold: 0.15 });
+io.observe(host);
+
 
     // Kick off if already visible
     if (host.getBoundingClientRect().top < window.innerHeight) render();
@@ -301,8 +302,8 @@ videoList.forEach((video)=>{
 // Three JS Game for fun
 
 /* 
-* "Game" nav item + Section + Forward-Progress Mini Game
- */
+* "Game" nav item + Section + Forward-Progress Mini Game (Start key added) 
+*/
 (function addGameNavAndSectionEnhancedForward() {
   const CV_URL = 'https://www.linkedin.com/in/r-chatterjee-034342241/';
 
@@ -325,7 +326,8 @@ videoList.forEach((video)=>{
     gameSection.id = 'game';
     gameSection.className = 'game-section';
     gameSection.style.scrollMarginTop = '100px';
-    projects?.parentNode?.insertBefore(gameSection, projects?.nextSibling || null);
+    const parent = (projects && projects.parentNode) || document.querySelector('.container') || document.body;
+    parent.insertBefore(gameSection, (projects && projects.nextSibling) || null);
   }
   gameSection.innerHTML = `<h1 class="section-title autoDisplay">Mini Game 🎮</h1>`;
 
@@ -373,13 +375,13 @@ videoList.forEach((video)=>{
       Vector3, Clock
     } = THREE;
 
-    // Scene setup ---
+    // Scene setup
     const scene = new Scene();
     const camera = new PerspectiveCamera(60, host.clientWidth / host.clientHeight, 0.1, 100);
 
     // Player & camera initial Z (we’ll move forward per pass)
     const CAM_OFFSET_Z = 6.0;
-    let playerZ = 0;               // actual player forward progress (more negative = forward)
+    let playerZ = 0;               // more negative is "forward"
     let camZ = playerZ + CAM_OFFSET_Z;
 
     camera.position.set(0, 2.2, camZ);
@@ -391,12 +393,12 @@ videoList.forEach((video)=>{
     Object.assign(renderer.domElement.style, { width: '100%', height: '100%', display: 'block' });
     host.appendChild(renderer.domElement);
 
-    // Lights (sharper/brighter)
+    // Lights
     scene.add(new AmbientLight(0xffffff, 0.85));
     const key = new DirectionalLight(0xfff2c2, 1.0); key.position.set(3, 5, 2); scene.add(key);
     const rim = new DirectionalLight(0x9cd3ff, 0.9); rim.position.set(-3, 2, 1); scene.add(rim);
 
-    // Ground (we’ll keep it centered near the camera)
+    // Ground
     const ground = new Mesh(
       new PlaneGeometry(10, 400),
       new MeshStandardMaterial({ color: 0x0d1540, roughness: 0.85, metalness: 0.2, transparent: true, opacity: 0.72 })
@@ -405,7 +407,7 @@ videoList.forEach((video)=>{
     ground.position.set(0, 0, camZ - 50);
     scene.add(ground);
 
-    // Player cube (brighter)
+    // Player cube
     const player = new Mesh(
       new BoxGeometry(0.9, 0.9, 0.9),
       new MeshStandardMaterial({ color: 0x00d0ff, metalness: 0.45, roughness: 0.33, emissive: 0x0077aa, emissiveIntensity: 0.9 })
@@ -422,15 +424,15 @@ videoList.forEach((video)=>{
     }
     setLane(1);
 
-    // Jump/Dash state
+    // Jump/Dash
     let y = 0.5, vy = 0, grounded = true;
     const GRAV = -18;
     const JUMP_V = 6.5;
     let dashTimer = 0;
 
     // Forward step per pass
-    const FORWARD_STEP = 0.6;      // how much “forward” per obstacle passed
-    let targetPlayerZ = playerZ;   // smooth to this
+    const FORWARD_STEP = 0.6;      // forward per obstacle passed
+    let targetPlayerZ = playerZ;
     let targetCamZ = camZ;
 
     // Helpers
@@ -439,7 +441,8 @@ videoList.forEach((video)=>{
     // Game state
     const obstacles = [];
     const clock = new Clock();
-    let running = true;
+    let started = false;           // NEW: game must be started
+    let running = false;           // only runs if visible AND started AND not gameOver
     let gameOver = false;
     let lastSpawn = 0;
     let spawnEvery = 0.95;
@@ -448,7 +451,7 @@ videoList.forEach((video)=>{
     let passed = 0;
     let openedCV = false;
 
-    // Spawn at a Z relative to current player forward progress
+    // Spawn obstacles
     function spawnObstacle() {
       const lane = lanes[(Math.random() * 3) | 0];
       const tiny = Math.random() < 0.35;
@@ -461,10 +464,8 @@ videoList.forEach((video)=>{
         new BoxGeometry(s, s, s),
         new MeshStandardMaterial({ color, metalness: 0.35, roughness: 0.28, emissive, emissiveIntensity: tiny ? 0.55 : 0.65 })
       );
-
-      // Spawn in front of the player (more negative than playerZ)
-      box.position.set(lane, s / 2, playerZ - 22);
-      box.userData.tiny = tiny;
+      box.position.set(lane, s / 2, playerZ - 22); // in front of player
+      box.userData.size = s;                       // store size (safer than geometry.parameters)
       scene.add(box);
       obstacles.push(box);
     }
@@ -485,18 +486,20 @@ videoList.forEach((video)=>{
       textShadow: '0 1px 2px rgba(0,0,0,0.6)'
     });
     controls.innerHTML =
-      'Move: ←/A &rarr; →/D &nbsp;·&nbsp; Jump: ↑/W &nbsp;·&nbsp; Dash: Shift &nbsp;·&nbsp; Pause: P &nbsp;·&nbsp; Restart: R<br>' +
+      'Start: <b>S</b> &nbsp;·&nbsp; Move: ←/A &rarr; →/D &nbsp;·&nbsp; Jump: ↑/W &nbsp;·&nbsp; Dash: Shift &nbsp;·&nbsp; Pause: P &nbsp;·&nbsp; Restart: R<br>' +
       'Each time you <b>pass an obstacle</b>, you move <b>forward</b>. Pass <b>10</b> to open your <b>LinkedIn CV</b>.';
     host.appendChild(controls);
 
     const overlay = document.createElement('div');
     Object.assign(overlay.style, {
       position: 'absolute', inset: '0',
-      display: 'none', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
       color: '#fff', fontSize: '18px', fontWeight: '800',
       background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)'
     });
+    overlay.textContent = 'Press S to Start (or tap)';
     host.appendChild(overlay);
+
     function setOverlay(msg) { overlay.textContent = msg; overlay.style.display = 'flex'; }
     function clearOverlay()  { overlay.style.display = 'none'; }
     function updateHUD()     { hud.textContent = `Score: ${Math.floor(score)}   |   Obstacles: ${passed}/10`; }
@@ -504,24 +507,37 @@ videoList.forEach((video)=>{
 
     // Input
     window.addEventListener('keydown', (e) => {
-      if (gameOver) {
-        if (e.key === 'r' || e.key === 'R') reset();
+      // Start
+      if ((e.key === 's' || e.key === 'S') && !started) {
+        started = true; running = true; clearOverlay(); clock.getDelta();
         return;
       }
+      if (gameOver) {
+        if (e.key === 'r' || e.key === 'R') reset(true); // restart immediately
+        return;
+      }
+      if (!started) return; // ignore controls until started
+
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') setLane(laneIndex - 1);
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') setLane(laneIndex + 1);
       if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { if (grounded) { vy = JUMP_V; grounded = false; } }
       if (e.key === 'Shift') { dashTimer = 0.35; }
-      if (e.key === 'p' || e.key === 'P') { running = !running; }
-      if (e.key === 'r' || e.key === 'R') reset();
+      if (e.key === 'p' || e.key === 'P') { running = !running; if (running) clock.getDelta(); }
+      if (e.key === 'r' || e.key === 'R') reset(true);
     });
 
-    // Touch
+    // Tap to start on mobile
+    host.addEventListener('click', () => {
+      if (!started) { started = true; running = true; clearOverlay(); clock.getDelta(); }
+    });
+
+    // Touch move/jump after started
     let touchStart = null;
     host.addEventListener('touchstart', (e) => { touchStart = e.changedTouches[0]; }, { passive: true });
     host.addEventListener('touchend', (e) => {
       const t = e.changedTouches[0];
       if (!touchStart) return;
+      if (!started || gameOver) { touchStart = null; return; }
       const dx = t.clientX - touchStart.clientX;
       const dy = t.clientY - touchStart.clientY;
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -532,12 +548,15 @@ videoList.forEach((video)=>{
       touchStart = null;
     }, { passive: true });
 
-    // Pause when off-screen
-    const io = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) running = false; }, { threshold: 0.1 });
+    // Pause/resume based on visibility — only if started and not gameOver
+    const io = new IntersectionObserver(([entry]) => {
+      running = entry.isIntersecting && started && !gameOver;
+      if (running) clock.getDelta(); // eat first dt so it doesn't spike
+    }, { threshold: 0.15 });
     io.observe(host);
 
-    // Reset
-    function reset() {
+    // Reset (if startNow=true, start immediately; else show "Press S")
+    function reset(startNow = false) {
       for (const o of obstacles) scene.remove(o);
       obstacles.length = 0;
 
@@ -545,10 +564,8 @@ videoList.forEach((video)=>{
       y = 0.5; vy = 0; grounded = true;
       dashTimer = 0;
 
-      playerZ = 0;
-      targetPlayerZ = 0;
-      camZ = CAM_OFFSET_Z;
-      targetCamZ = CAM_OFFSET_Z;
+      playerZ = 0; targetPlayerZ = 0;
+      camZ = CAM_OFFSET_Z; targetCamZ = CAM_OFFSET_Z;
 
       player.position.set(lanes[1], 0.5, playerZ);
       camera.position.z = camZ;
@@ -556,25 +573,33 @@ videoList.forEach((video)=>{
 
       lastSpawn = 0; spawnEvery = 0.95; baseSpeed = 7.5;
       score = 0; passed = 0; openedCV = false;
-      gameOver = false; running = true;
+      gameOver = false;
+
+      if (startNow) {
+        started = true; running = true; clearOverlay(); clock.getDelta();
+      } else {
+        started = false; running = false; setOverlay('Press S to Start (or tap)');
+      }
+
       flash.style.opacity = '0';
-      clearOverlay(); updateHUD();
+      updateHUD();
     }
 
     // Animate
+    const clockObj = clock; // naming clarity
     function animate() {
       requestAnimationFrame(animate);
-      const dt = clock.getDelta();
+      const dt = clockObj.getDelta();
 
       // Smooth follow for playerZ and cameraZ
-      playerZ = lerp(playerZ, targetPlayerZ, Math.min(1, dt * 6));   // snappy
-      camZ    = lerp(camZ,    targetCamZ,    Math.min(1, dt * 4));   // a bit slower
+      playerZ = lerp(playerZ, targetPlayerZ, Math.min(1, dt * 6));
+      camZ    = lerp(camZ,    targetCamZ,    Math.min(1, dt * 4));
       player.position.z = playerZ;
       camera.position.z = camZ;
       camera.lookAt(player.position.x, 1, playerZ);
       ground.position.z = camZ - 50;
 
-      // Idle bob + dash pulse
+      // Idle/dash visuals
       player.position.y = y;
       player.scale.setScalar(1 + (dashTimer > 0 ? 0.06 : 0.0));
       player.material.emissiveIntensity = dashTimer > 0 ? 1.0 : 0.9;
@@ -587,7 +612,7 @@ videoList.forEach((video)=>{
           if (y <= 0.5) { y = 0.5; vy = 0; grounded = true; }
         }
 
-        // Spawn
+        // Spawning & difficulty ramp
         lastSpawn += dt;
         if (lastSpawn >= spawnEvery) {
           spawnObstacle();
@@ -596,34 +621,33 @@ videoList.forEach((video)=>{
           baseSpeed = Math.min(11.5, baseSpeed + 0.05);
         }
 
-        // Move obstacles toward camera (positive z direction)
+        // Move obstacles toward camera
         const speed = baseSpeed * (dashTimer > 0 ? 0.92 : 1.0);
         for (let i = obstacles.length - 1; i >= 0; i--) {
           const o = obstacles[i];
           o.position.z += speed * dt;
 
-          // Remove if way past the camera
+          // Passed the camera?
           if (o.position.z > camZ + 6.5) {
             scene.remove(o);
             obstacles.splice(i, 1);
 
-            // Passed count & score
+            // Progress & score
             passed += 1;
             score += 15;
             updateHUD();
 
-            // Move forward one step (more negative z)
+            // Step forward (more negative z)
             targetPlayerZ -= FORWARD_STEP;
             targetCamZ = targetPlayerZ + CAM_OFFSET_Z;
 
-            // After 10 passes: flash + open CV
+            // After 10 passes: flash + open CV (popup-safe)
             if (passed >= 10 && !openedCV) {
               openedCV = true;
-              // quick bright flash
               flash.style.opacity = '1';
               setTimeout(() => {
-                window.open(CV_URL, '_blank', 'noopener');
-                // fade the flash back out
+                const win = window.open(CV_URL, '_blank', 'noopener');
+              
                 flash.style.opacity = '0';
               }, 220);
             }
@@ -631,10 +655,11 @@ videoList.forEach((video)=>{
           }
 
           // Collision (relative to player)
-          const nearZ = Math.abs(o.position.z - playerZ) < (o.geometry.parameters.depth * 0.5 + 0.55);
-          const sameLane = Math.abs(o.position.x - player.position.x) < (o.geometry.parameters.width * 0.5 + 0.55);
-          const jumpedOver = y > (o.geometry.parameters.height + 0.55);
-          const phased = dashTimer > 0;
+          const sz = o.userData.size ?? 0.6;
+          const nearZ     = Math.abs(o.position.z - playerZ) < (sz * 0.5 + 0.55);
+          const sameLane  = Math.abs(o.position.x - player.position.x) < (sz * 0.5 + 0.55);
+          const jumpedOver= y > (sz + 0.55);
+          const phased    = dashTimer > 0;
 
           if (nearZ && sameLane && !jumpedOver && !phased) {
             gameOver = true; running = false;
